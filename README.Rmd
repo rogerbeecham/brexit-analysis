@@ -1,6 +1,11 @@
-Spatially varying explanations behind the Brexit vote
-================
-*Roger Beecham, 27th April 2017*
+---
+title: "Spatially varying explanations behind the Brexit vote"
+author: "Roger Beecham"
+date: "27 April, 2017"
+output:
+  md_document:
+    variant: markdown_github
+---
 
 This repository describes a data analysis exploring spatially varying explanations behind the UK's vote to leave the EU. This work is ongoing, but preliminary findings were presented at [GISRUK 2017](http://manchester.gisruk.org) ([abstract](http://huckg.is/gisruk2017/GISRUK_2017_paper_75.pdf) | [talk](http://www.staff.city.ac.uk/~sbbm143/gisruk2017_brexit_talk.pdf)).
 
@@ -8,28 +13,27 @@ The general plan is to consider how closely the media narrative around the Leave
 
 Below is a summary of the selected 2011 Census variables and the 'concepts', discussed in the popular discourse around the result, we assume they represent.
 
-|     2011 Census variable    |               Concept               |
-|:---------------------------:|:-----------------------------------:|
-|      *degree-educated*      |                                     |
-|  *professional occupations* | post-industrial / knowlegde economy |
-|       *younger adults*      |                                     |
-|     --------------------    |           ----------------          |
-|      *English speaking*     |                                     |
-|      *single-ethnicity*     |                                     |
-|      *not good health*      |    diversity / values / outcomes    |
-|    *white British/Irish*    |                                     |
-|         *Christian*         |                                     |
-|      *EU-born (not UK)*     |                                     |
-|     --------------------    |           ----------------          |
-|          *own home*         |                                     |
-|       *don't own car*       |      metropolitan / urban-rural     |
-| *private transport to work* |                                     |
-|     --------------------    |           ----------------          |
+| 2011 Census variable | Concept |
+|:--------------------:|:----------------:|
+| *degree-educated* |                               |
+| *professional occupations* | post-industrial / knowlegde economy |
+| *younger adults* | |
+|--------------------|----------------|
+| *English speaking* | |
+| *single-ethnicity* | |
+| *not good health* | diversity / values / outcomes |
+| *white British/Irish* | |
+| *Christian* | |
+| *EU-born (not UK)* | |
+|--------------------|----------------|
+| *own home*  | |
+| *don't own car* | metropolitan / urban-rural |
+| *private transport to work* |  |
+|--------------------|----------------|
 
-Configure R and load data
--------------------------
+## Configure R and load data
 
-``` r
+```{r, echo=TRUE, eval=FALSE}
 # --- Libraries ---
 # For spatial data handling
 library(rgdal) 
@@ -51,16 +55,15 @@ library(glmnet)
 source("src/load_data.R")
 ```
 
-Model 1: uniform model that assumes each LA votes in the same proportions as GB
--------------------------------------------------------------------------------
+## Model 1: uniform model that assumes each LA votes in the same proportions as GB
 
 ![](./img/uniform_model.png)
 
-We start by comparing the results data against a uniform model that assumes each Local Authority votes for Leave in same proportion as Great Britain (GB) as a whole. This results in residual maps that were widely published in the aftermath of the vote. They demonstrate that our uniform model overestimates the leave vote in Scotland and London, whilst the corollary is true for much of England and Wales. Notice a few exceptions: the dark red of Cambridge surrounded by (generally) blue.
+We start by comparing the results data against a uniform model that assumes each Local Authority votes for Leave in same proportion as Great Britain (GB) as a whole. This results in residual maps that were widely published in the aftermath of the vote. They demonstrate that our uniform model overestimates the leave vote in Scotland and London, whilst the corollary is true for much of England and Wales. Notice a few exceptions: the dark red of Cambridge surrounded by (generally) blue.  
 
 That these very obvious patterns exist — Scotland and London look categorically distinct! — we can ask whether there is something fundamentally different about those areas.
 
-``` r
+```{r, echo=TRUE, eval=FALSE}
 # --- Maps of residuals ---
 # Tidy SDF into DF for use in ggplot2.
 data_gb_df <- broom::tidy(data_gb)
@@ -105,16 +108,15 @@ gb_hex_df %>%
       )
 ```
 
-Model 2: Univariate linear regression model
--------------------------------------------
+## Model 2: Univariate linear regression model
 
 ![](./img/univariate_model.png)
 
-We start with the degree-educated variable -- that is proportion of residents in a LA educated to bachelors level or higher. This is the most heavily correlated variable (inversely) with the Leave vote and variation in it explains 57% of the variation between LAs in their share of Leave vote. Looking at the scatterplot, we see that these residuals aren’t necessarily ideally distributed around the regression line: we see a set of LAs where our model still overestimates the Leave vote given the levels education in those areas. And we see from the map that these LAs are overwhelming concentrated in Scotland.
+We start with the degree-educated variable -- that is proportion of residents in a LA educated to bachelors level or higher. This is the most heavily correlated variable (inversely) with the Leave vote and variation in it explains 57% of the variation between LAs in their share of Leave vote. Looking at the scatterplot, we see that these residuals aren’t necessarily ideally distributed around the regression line: we see a set of LAs  where our model still overestimates the Leave vote given the levels  education in those areas. And we see from the map that these LAs are overwhelming concentrated in Scotland. 
 
 By excluding Scotland, the residuals are more randomly distributed around the regression line and we can explain 80% of variation in LA-level voting preference in England and Wales with variation in the degree-eduction variable. But the residuals exhibit spatial structure and we can make a case for local models.
 
-``` r
+```{r, echo=TRUE, eval=FALSE}
 # --- Explore outcome variables ---
 # Variables ordered by correlation coefficient for charting.
 order_explanatory <- data_gb@data %>% 
@@ -198,16 +200,19 @@ gb_hex_df %>%
         )
 ```
 
-Model 3: Multivariate linear regression model, fit using LASSO
---------------------------------------------------------------
+
+## Model 3: Multivariate linear regression model, fit using LASSO
 
 ![](./img/multivariate_global.png)
 
-Here we investigate other variables that are also confounded with Leave. We do so by building a global multivariate regression model on these variables but add Scotland and London -- areas that we see as categorically distinct -- as dummy variables. We fit our multivariate model using LASSO [(Tibshirani 1996)](http://www.jstor.org/stable/2346178?seq=1#page_scan_tab_contents). LASSO is similar to OLS (it tries to minimise the sum of residuals in the same way) but also adds a penalty on the sum of regression coefficients to make sure they don’t get too large -- large coefficients may suggest overfitting. Particularly useful is that LASSO performs variable selection by shrinking the least important coefficients to zero, removing them from the model.
+Here we investigate other variables that are also confounded with Leave. We do so by building a global multivariate regression model on these variables but add Scotland and London -- areas that we see as categorically distinct -- as dummy variables. We fit our multivariate model using LASSO [(Tibshirani 1996)](http://www.jstor.org/stable/2346178?seq=1#page_scan_tab_contents). LASSO is similar to OLS (it tries to minimise the sum of residuals in the same way) but also adds a penalty on the sum of regression coefficients to make sure they don’t get too large -- large coefficients may suggest overfitting. Particularly useful is that LASSO performs variable selection by shrinking the least important coefficients to zero, removing them from the model. 
 
 In the Figure above are regression coefficients for a multivariate model fit with our 14 explanatory variables. The line through the regression coefficients and their transparency varies with confidence intervals calculated from a bootstrap. The outcome is share of Leave vote so negative coefficients have the effect of lowering the leave vote. Our LASSO has identified six variables. The degree-educated variable consistently has the highest coefficient value. Holding the other variables constant, a one percent point increase in the degree-educated population decreases the leave vote by 0.9 percent points. The fact that Scotland is selected by our Lasso model also makes sense given the earlier chart. There is something fundamentally different about Scotland, not accounted for completely by our census variables, that lowers preference for Leave. The EU-born variable is counter to what we would expect from the scatterplots, where it is negatively associated with Leave and so might represent the 'diversity' and 'openness' of an LA. Rather, when we hold the other variables constant, an increase in the EU-born population also *increases* the Leave vote -- there is a sense here that the variable describes change as a result of EU-migration in pejorative way.
 
-``` r
+
+
+
+```{r, echo=TRUE, eval=FALSE}
 # --- Fit model using LASSO ---
 # Generate dummy variables.
 data_gb@data <- data_gb@data %>%
@@ -296,16 +301,15 @@ models %>%
       )
 ```
 
-Model 4-9: Local linear models
-------------------------------
+## Model 4-9: Local linear models
 
 ![](./img/multivariate_global.png)
 
 Studying maps of residuals and also simply colouring scatterplots by region (as above), there is evidence that relationships vary geographically in some way. We therefore fit separate models for separate regions of GB using LASSO. The thinking here is that LASSO could help automatically identify variables that are important locally but which might not be, or might have problems, globally. Since we have only 380 LAs and the size of regions can vary (there are only 12 LAs in the North East), we aggregate to create six super-regions. In the chart above, regression coefficients are presented in the same way as for the global model.
 
-For London, which includes some pro-leave authorities to the east (Havering, Barking and Dagenham , our model suggests metropolitan (private transport to work and single ethnicity household) as well as post-industrial type variables. The coefficient on the degree-educated variable is also much smaller than we see in other super-regions. For the East and West, the degree-educated variable remains the obvious covariate, but we also see an effect of the Christian variable, representing low diversity and ‘traditional’ values, and in the direction we would expect. Further north, other variables have an effect. There is a sense that after controlling for education levels, variables that are associated with material disadvantage (not good health) might uniquely have an effect. Also notice the EU born variable here.
+For London, which includes some pro-leave authorities to the east (Havering, Barking and Dagenham , our model suggests metropolitan (private transport to work and single ethnicity household) as well as post-industrial type variables. The coefficient on the degree-educated variable is also much smaller than we see in other super-regions. For the East and West, the degree-educated variable remains the obvious covariate, but we also see an effect of the Christian variable, representing low diversity and ‘traditional’ values, and in the direction we would expect. Further north, other variables have an effect. There is a sense that after controlling for education levels, variables that are associated with material disadvantage (not good health) might uniquely have an effect. Also notice the EU born variable here. 
 
-``` r
+```{r, echo=TRUE, eval=FALSE}
 # Create super-regions.
 data_gb@data <- data_gb@data %>%
   mutate(
@@ -383,23 +387,23 @@ order_local <- local_models %>%
 order_local$order <- 1:nrow(order_local)
 # Create semi-spatial layout to supply to facet_grid(). 
 super_region_layout <- read.table(
-  header=TRUE, text='superregion gridX  gridY
+  header=TRUE, text='superregion gridX	gridY
 "" 1 1
 "" 1 2
 "" 1 3
-Scotland    2   1
-  North 2   2
-  Midlands  2   3
+Scotland	2	1
+  North	2	2
+  Midlands	2	3
   "" 3 1
   "" 3 2
-  East  3   3
+  East	3	3
   "" 3 4
   "" 4 1
   "" 4 2
   "" 4 3
   "" 4 4
-  West  1   4
-  London    2   4')
+  West	1	4
+  London	2	4')
 # Merge layout to local_models.
 local_models <- inner_join(local_models, super_region_layout) %>%
                             mutate(x=1.1, y=1.5)
