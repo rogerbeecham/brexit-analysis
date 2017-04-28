@@ -77,32 +77,14 @@ data_gb_df %>%
     ggplot(mapping=aes(x=long, y=lat, group = group, fill = model1)) +
     geom_polygon( colour = "grey50", size=0.1 ) +
     coord_equal() +
-    scale_fill_distiller(type="div", palette=5, direction=1, guide="colourbar", limits=c(-0.297,0.297)) +
-    theme( 
-        legend.title  = element_blank(),
-        text=element_text(family="Avenir LT 45 Book"),
-        axis.title = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid=element_blank(),
-        panel.background = element_blank()
-     )
+    scale_fill_distiller(type="div", palette=5, direction=1, guide="colourbar", limits=c(-0.297,0.297))
 # PLot hex cartogram  -- area and shape is constant.
 gb_hex_df %>%
    mutate(model1 = Leave-0.51) %>%
     ggplot(mapping=aes(x=long, y=lat, group = group, fill = model1)) +
     geom_polygon( colour = "grey50", size=0.1 ) +
     coord_equal() +
-    scale_fill_distiller(palette=5, type="div", direction=1, guide="colourbar", limits=c(-0.297,0.297)) +
-    theme( 
-        legend.title  = element_blank(),
-        text=element_text(family="Avenir LT 45 Book"),
-        axis.title = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid=element_blank(),
-        panel.background = element_blank()
-      )
+    scale_fill_distiller(palette=5, type="div", direction=1, guide="colourbar", limits=c(-0.297,0.297))
 ```
 
 Model 2: Univariate linear regression model
@@ -132,17 +114,7 @@ data_gb@data %>%
       geom_point(colour="#525252",pch=21) +
       stat_smooth(method=lm, se=FALSE, size=0.6, colour="#525252")+
       facet_wrap(~expl_var, scales="free")+
-      theme_bw()+
-      theme(legend.position="none", 
-        legend.title  = element_blank(),
-        text=element_text(family="Avenir LT 45 Book"),
-        axis.title = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid=element_blank(),
-        panel.background = element_blank(),
-        strip.background = element_rect(fill="#f7f7f7", size=0.5)
-      )
+      theme_bw()
 
 # --- Univariate linear model on degree-educated variable ---
 m_gb_degrees <- lm(Leave~ degree_educated, data_gb@data)
@@ -174,10 +146,7 @@ data_gb@data %>%
   geom_ribbon(aes(ymin=lower, ymax=upper), alpha=0.2)+
   scale_fill_distiller(palette=5, type="div", direction=1, guide="colourbar", limits=c(-0.27,0.27))+
   ggtitle("R2: 0.57")+
-  theme_classic()+
-  theme(legend.position="none", 
-      text=element_text(family="Avenir LT 45 Book")
-      )
+  theme_classic()
 
 # Map of residuals.
 gb_hex_df <- left_join(gb_hex_df,gb_hex@data %>% select(id, resids_gb_degrees), by=c("id"="id"))
@@ -186,16 +155,7 @@ gb_hex_df %>%
   geom_polygon( colour = "grey50", size=0.1 ) +
   coord_equal() +
   scale_fill_distiller(palette=5, type="div", direction=1, guide="colourbar", limits=c(-0.297,0.297)) +
-  ggtitle("R2: 0.57") +
-   theme( 
-        legend.title  = element_blank(),
-        text=element_text(family="Avenir LT 45 Book"),
-        axis.title = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid=element_blank(),
-        panel.background = element_blank()
-        )
+  ggtitle("R2: 0.57") 
 ```
 
 Model 3: Multivariate linear regression model, fit using LASSO
@@ -286,14 +246,7 @@ models %>%
       scale_y_continuous(limits=c(-1,1))+
       scale_colour_manual(values = b1_sign )+
       labs(x="",y="coefficient effect")+
-      theme_classic()+
-      theme( 
-        legend.position="none",
-        text=element_text(family="Avenir LT 45 Book"),
-        axis.ticks = element_blank(),
-        panel.grid=element_blank(),
-        panel.background = element_blank()
-      )
+      theme_classic()
 ```
 
 Model 4-9: Local linear models
@@ -331,16 +284,7 @@ data_gb@data %>%
       scale_fill_brewer(type="qual", palette = "Set3")+
       scale_colour_brewer(type="qual", palette = "Set3")+
       facet_wrap(~expl_var, scales="free")+
-      theme_bw()+
-      theme(legend.position="none",
-        legend.title  = element_blank(),
-        text=element_text(family="Avenir LT 45 Book"),
-        axis.title = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid=element_blank(),
-        panel.background = element_blank(),
-        strip.background = element_rect(fill="#f7f7f7", size=0.2))
+      theme_bw()
 
 # Create data frame for storing local models.
 local_models <- data_gb@data %>% 
@@ -417,16 +361,5 @@ local_models %>%
       labs(x="",y="b1")+
       geom_text(aes(x, y, label=superregion, group=NULL, hjust="right", size=40),size=2.5, family="Avenir LT 45 Book")+
       facet_grid(gridY~gridX)+
-      theme_bw()+
-      theme(
-        legend.title  = element_blank(),
-        text=element_text(family="Avenir LT 45 Book"),
-        axis.title = element_blank(),
-        #axis.text = element_blank(),
-        #axis.line = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid=element_blank(),
-        panel.background = element_blank(),
-        strip.background = element_blank(),
-        strip.text=element_blank())
+      theme_bw()
 ```
