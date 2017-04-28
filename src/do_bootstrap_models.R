@@ -1,17 +1,12 @@
-add_variables <- function(boot_super, cats)
-{
-  for(i in 1:nrow(cats))
-  {
+add_variables <- function(boot_super, cats) {
+  for(i in 1:nrow(cats)) {
     add_row <- TRUE
-    for(j in 1:nrow(boot_super))
-    {
-      if(cats$row[i]==boot_super$row[j])
-      {
+    for(j in 1:nrow(boot_super)) {
+      if(cats$row[i]==boot_super$row[j]) {
         add_row <- FALSE
       }
     }
-    if(add_row)
-    {
+    if(add_row) {
       boot_super <- boot_super %>% 
         tibble::add_row(
           row=cats$row[i],
