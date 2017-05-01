@@ -256,7 +256,7 @@ models %>%
 
 ## Model 4-9: Local linear models
 
-![](./img/multivariate_global.png)
+![](./img/multivariate_local.png)
 
 Studying maps of residuals and also simply colouring scatterplots by region (as above), there is evidence that relationships vary geographically in some way. We therefore fit separate models for separate regions of GB using LASSO. The thinking here is that LASSO could help automatically identify variables that are important locally but which might not be, or might have problems, globally. Since we have only 380 LAs and the size of regions can vary (there are only 12 LAs in the North East), we aggregate to create six super-regions. In the chart above, regression coefficients are presented in the same way as for the global model.
 

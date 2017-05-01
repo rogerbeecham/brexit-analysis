@@ -32,8 +32,8 @@ Configure R and load data
 ``` r
 # --- Libraries ---
 # For spatial data handling
-library(rgdal) 
-library(rgeos) 
+library(rgdal)
+library(rgeos)
 library(rmapshaper)
 # For charting and handling data
 library(tidyverse)
@@ -99,15 +99,15 @@ By excluding Scotland, the residuals are more randomly distributed around the re
 ``` r
 # --- Explore outcome variables ---
 # Variables ordered by correlation coefficient for charting.
-order_explanatory <- data_gb@data %>% 
+order_explanatory <- data_gb@data %>%
   gather(c(younger_adults:eu_born), key = "expl_var_order", value="la_prop") %>%
     group_by(expl_var_order) %>%
       summarise(correlation = stats::cor(Leave, la_prop)) %>%
         arrange(desc(abs(correlation))) %>%
-          mutate(order=row_number(), label = paste(order, expl_var_order, sep=": ")) 
+          mutate(order=row_number(), label = paste(order, expl_var_order, sep=": "))
 
 # Scatter plots of candidate explanatory variables.
-data_gb@data %>% 
+data_gb@data %>%
   gather(c(younger_adults:eu_born), key = "expl_var", value="la_prop") %>%
     mutate(expl_var=fct_relevel(expl_var,order_explanatory$expl_var_order)) %>%
       ggplot(aes(x=la_prop, y=Leave))+
@@ -119,8 +119,8 @@ data_gb@data %>%
 # --- Univariate linear model on degree-educated variable ---
 m_gb_degrees <- lm(Leave~ degree_educated, data_gb@data)
 # Perform a bootstrap for evaluating model uncertainty.
-resamples <- modelr::bootstrap(data_gb@data, 1000) %>% 
-                mutate(model = purrr::map(strap,~lm(Leave ~ degree_educated, .))) %>% 
+resamples <- modelr::bootstrap(data_gb@data, 1000) %>%
+                mutate(model = purrr::map(strap,~lm(Leave ~ degree_educated, .))) %>%
                   transmute(
                       .id,
                       data = purrr::map2(list(data_gb@data %>% select(geo_code, degree_educated)), model, modelr::add_predictions, var = "predicted")
@@ -132,15 +132,15 @@ resamples <- modelr::bootstrap(data_gb@data, 1000) %>%
                           upper = quantile(predicted, 0.975)
                         )
 # Add model residuals and bootstrap intervals on predicted values
-data_gb@data <- data_gb@data %>% 
+data_gb@data <- data_gb@data %>%
                   mutate(resids_gb_degrees = resid(m_gb_degrees)) %>%
                     inner_join(., resamples)
 # And to hex cartogram for mapping.
-gb_hex@data <- inner_join(gb_hex@data, data_gb@data %>% select(geo_code, resids_gb_degrees), by=c("geo_code"="geo_code")) 
+gb_hex@data <- inner_join(gb_hex@data, data_gb@data %>% select(geo_code, resids_gb_degrees), by=c("geo_code"="geo_code"))
 
 # Scatterplot with model residuals and bootstrap confidence interval.
-data_gb@data %>% 
-  ggplot(aes(x=degree_educated, y=Leave))+ 
+data_gb@data %>%
+  ggplot(aes(x=degree_educated, y=Leave))+
   geom_point(mapping=aes(fill=resids_gb_degrees),colour="#525252",pch=21) +
   stat_smooth(method=lm, se=FALSE, colour="#525252", size=0.6)+
   geom_ribbon(aes(ymin=lower, ymax=upper), alpha=0.2)+
@@ -155,7 +155,7 @@ gb_hex_df %>%
   geom_polygon( colour = "grey50", size=0.1 ) +
   coord_equal() +
   scale_fill_distiller(palette=5, type="div", direction=1, guide="colourbar", limits=c(-0.297,0.297)) +
-  ggtitle("R2: 0.57") 
+  ggtitle("R2: 0.57")
 ```
 
 Model 3: Multivariate linear regression model, fit using LASSO
@@ -174,15 +174,15 @@ data_gb@data <- data_gb@data %>%
                   mutate(
                     scotland = as.numeric(Region=="Scotland"),
                     london = as.numeric(Region=="London")
-                    ) 
+                    )
 # Lasso on GB data.
 xvars_gb <- data_gb@data %>% select(younger_adults:eu_born, c(scotland, london))
 x_gb <- as.matrix(xvars_gb)
-y_gb <- as.matrix(data_gb@data %>% select(Leave)) 
+y_gb <- as.matrix(data_gb@data %>% select(Leave))
 fit_gb <- glmnet(x_gb,y_gb, alpha=1)
 cv_fit_gb <- cv.glmnet(x_gb,y_gb, alpha=1)
-# Fitted values and residuals from Lasso for interpretation. 
-xvars_gb <- xvars_gb %>% 
+# Fitted values and residuals from Lasso for interpretation.
+xvars_gb <- xvars_gb %>%
           mutate(
             fitted =  as.numeric(predict.glmnet(fit_gb, newx=x_gb, s =  cv_fit_gb$lambda.1se)),
             obs = as.numeric(y_gb),
@@ -198,7 +198,7 @@ do_lasso_boot <- function(data) {
                   outcome <- as.matrix(data$data %>% select(Leave))
                   return(cv.glmnet(explanatory, outcome, alpha=1))
                 }
-models <- modelr::bootstrap(data_gb@data %>% select(geo_code:london), 1000) %>% 
+models <- modelr::bootstrap(data_gb@data %>% select(geo_code:london), 1000) %>%
               mutate(
                 model = purrr::map(strap,do_lasso_boot),
                 coef = purrr::map(model, ~coef(., s="lambda.1se")),
@@ -217,17 +217,17 @@ observed <- as_tibble(broom::tidy(coef(cv_fit_gb, s = "lambda.1se"))) %>%
                 select(row, observed) %>%
                   filter(row!="(Intercept)")
 # Join with coefficients from bootstrap.
-models <- left_join(models,observed) 
+models <- left_join(models,observed)
 
-# -- Dotplot of coefficients and bootstrap 'uncertainty' --- 
+# -- Dotplot of coefficients and bootstrap 'uncertainty' ---
 # Map() function for scaling of colour values (alpha channel).
 map_scale <- function(value, min1, max1, min2, max2) {
                     return  (min2+(max2-min2)*((value-min1)/(max1-min1)))
                   }
 # Create a data frame for new 'uncertainty' variable and corresponding 'alpha' variables.
-order_expl <- models  %>% 
-                filter(!is.na(observed)) %>% 
-                  mutate(uncertainty = lower-upper) %>% 
+order_expl <- models  %>%
+                filter(!is.na(observed)) %>%
+                  mutate(uncertainty = lower-upper) %>%
                    arrange(-desc(abs(observed))) %>%
                     mutate(alpha= map_scale(abs(uncertainty), min(abs(uncertainty)), max(abs(uncertainty)), 1,0.2))
 # Differentiate sign on regression coefficients.
@@ -252,7 +252,7 @@ models %>%
 Model 4-9: Local linear models
 ------------------------------
 
-![](./img/multivariate_global.png)
+![](./img/multivariate_local.png)
 
 Studying maps of residuals and also simply colouring scatterplots by region (as above), there is evidence that relationships vary geographically in some way. We therefore fit separate models for separate regions of GB using LASSO. The thinking here is that LASSO could help automatically identify variables that are important locally but which might not be, or might have problems, globally. Since we have only 380 LAs and the size of regions can vary (there are only 12 LAs in the North East), we aggregate to create six super-regions. In the chart above, regression coefficients are presented in the same way as for the global model.
 
@@ -262,7 +262,7 @@ For London, which includes some pro-leave authorities to the east (Havering, Bar
 # Create super-regions.
 data_gb@data <- data_gb@data %>%
   mutate(
-         super_region= fct_recode(Region, 
+         super_region= fct_recode(Region,
                                    "North"= "North East",
                                    "North"="North West",
                                    "North"="Yorkshire and The Humber",
@@ -273,9 +273,9 @@ data_gb@data <- data_gb@data %>%
                                    "East" = "South East",
                                    "West" = "Wales",
                                    "West" = "South West"
-                                    )) 
+                                    ))
 # Colour and annotate with regression lines by super-region to consider local variation in associations.
-data_gb@data %>% 
+data_gb@data %>%
   gather(c(younger_adults:eu_born), key = "expl_var", value="la_prop") %>%
     mutate(expl_var=fct_relevel(expl_var,order_explanatory$expl_var_order)) %>%
       ggplot(aes(x=la_prop, y=Leave, fill=super_region,colour=super_region))+
@@ -287,14 +287,14 @@ data_gb@data %>%
       theme_bw()
 
 # Create data frame for storing local models.
-local_models <- data_gb@data %>% 
+local_models <- data_gb@data %>%
                         select(younger_adults:eu_born, super_region) %>%
                           gather(key="row", value, -super_region) %>%
                             group_by(super_region,row) %>%
                               summarise()
 super_regions <- local_models %>%
                       group_by(super_region) %>%
-                        summarise() 
+                        summarise()
 super_regions$super_region <- as.character(super_regions$super_region)
 # And list of candidate explanatory variables used in model.
 cats <- candidate_variables %>%
@@ -303,10 +303,10 @@ cats <- candidate_variables %>%
 # Functions for creating bootstrap local models.
 source("src/do_bootstrap_models.R")
 # Build a data frame of local models (this may take a while).
-local_models <- bind_rows(super_regions$super_region %>% purrr::map_df(~ 
+local_models <- bind_rows(super_regions$super_region %>% purrr::map_df(~
                         do_bootstrap_superregion(data_gb@data %>% filter(super_region==.x), .x, cats)))
 # Additional variables for charting bootstrap CI.
-local_models <- local_models  %>% 
+local_models <- local_models  %>%
                       mutate(
                         observed=ifelse(is.na(observed),0,observed),
                         lower=ifelse(is.na(lower),0,lower),
@@ -316,16 +316,16 @@ local_models <- local_models  %>%
                         alpha= map_scale(abs(uncertainty), min(abs(uncertainty)), max(abs(uncertainty)), 1,0.2),
                         alpha=ifelse(alpha==1,0,alpha),
                         size=ifelse(alpha==1,0,1)) %>%
-                          group_by(superregion) 
+                          group_by(superregion)
 # Order chart by max coefficient effect.
 order_local <- local_models %>%
             group_by(row) %>%
             summarise(
               order=max(abs(observed))
             ) %>%
-            arrange(-desc(order)) 
+            arrange(-desc(order))
 order_local$order <- 1:nrow(order_local)
-# Create semi-spatial layout to supply to facet_grid(). 
+# Create semi-spatial layout to supply to facet_grid().
 super_region_layout <- read.table(
   header=TRUE, text='superregion gridX  gridY
 "" 1 1
