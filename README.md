@@ -266,7 +266,6 @@ data_gb@data <- data_gb@data %>%
                                    "North"= "North East",
                                    "North"="North West",
                                    "North"="Yorkshire and The Humber",
-                                   "North"="Yorkshire and The Humber",
                                    "Midlands"="East Midlands",
                                    "Midlands"="West Midlands",
                                    "East" = "East",
@@ -319,11 +318,9 @@ local_models <- local_models  %>%
                           group_by(superregion)
 # Order chart by max coefficient effect.
 order_local <- local_models %>%
-            group_by(row) %>%
-            summarise(
-              order=max(abs(observed))
-            ) %>%
-            arrange(-desc(order))
+                group_by(row) %>%
+                  summarise(order=max(abs(observed))) %>%
+                    arrange(-desc(order))
 order_local$order <- 1:nrow(order_local)
 # Create semi-spatial layout to supply to facet_grid().
 super_region_layout <- read.table(
