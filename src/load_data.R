@@ -84,6 +84,8 @@ rm(census_data)
 rm(referendum_data)
 rm(attribute_data)
 rm(gb_boundaries)
+rm(birth_country_11)
+rm(oa_la_lookup)
 # We'll calculate another variable that might be discriminating: population density. As well as a margin (leave/remain) variable for charting.
 data_gb@data$area <- gArea(data_gb, byid=TRUE)/1000
 colnames(data_gb@data)[3] <- "geo_label"
