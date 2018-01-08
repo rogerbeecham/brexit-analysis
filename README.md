@@ -2,7 +2,7 @@ Locally varying explanations behind the Brexit vote
 ================
 Roger Beecham
 
-This repository supports a data analysis exploring locally varying explanations behind the UK's vote to leave the EU. This work is ongoing, but preliminary findings were presented at [GISRUK 2017](http://manchester.gisruk.org) ([abstract](http://huckg.is/gisruk2017/GISRUK_2017_paper_75.pdf) | [talk](http://www.staff.city.ac.uk/~sbbm143/gisruk2017_brexit_talk.pdf)).
+This repository supports a data analysis exploring locally varying explanations behind the UK's vote to leave the EU. Preliminary findings were presented at [GISRUK 2017](http://manchester.gisruk.org) ([abstract](http://huckg.is/gisruk2017/GISRUK_2017_paper_75.pdf) | [talk](http://www.staff.city.ac.uk/~sbbm143/gisruk2017_brexit_talk.pdf)). The full paper is to appear in [Journal of Spatial Information Science](http://www.josis.org/index.php/josis/article/view/377).
 
 The general plan is to consider how closely the media narrative around the Leave vote is borne out in data. We repeat the same methods taken by Political Scientists -- explore how Local Authority-level (LA) results data co-vary with key socio-economic characteristics collected through the 2011 Census -- but pay particular attention to whether these associations differ for different parts of the country. We do so by considering whether spatial patterns exist in our global model fits (we produce many residual maps) and by building *local* models.
 
